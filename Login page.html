@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Page</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: #0d0d14;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    transition: background 0.8s ease;
+  }
+
+  .room-light {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 55% at 50% 18%, rgba(201,168,76,0.22) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 1s ease;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: white;
+    animation: twinkle var(--dur, 3s) infinite alternate ease-in-out;
+    animation-delay: var(--delay, 0s);
+  }
+  @keyframes twinkle {
+    from { opacity: var(--min, 0.1); }
+    to   { opacity: var(--max, 0.6); }
+  }
+
+  .scene {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ===== LAMP ===== */
+  .lamp-wrap {
+    position: relative;
+    width: 200px;
+    height: 270px;
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+    margin-bottom: -12px;
+  }
+
+  .lamp-halo {
+    position: absolute;
+    top: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 130px;
+    height: 90px;
+    background: radial-gradient(ellipse, rgba(255,215,80,0.65) 0%, transparent 70%);
+    opacity: 0;
+    border-radius: 50%;
+    filter: blur(10px);
+    pointer-events: none;
+    transition: opacity 1s ease;
+  }
+
+  .light-cone {
+    position: absolute;
+    top: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    border-left: 60px solid transparent;
+    border-right: 60px solid transparent;
+    border-bottom: 180px solid rgba(201,168,76,0.09);
+    opacity: 0;
+    filter: blur(10px);
+    pointer-events: none;
+    transition: opacity 1s ease;
+  }
+
+  .lamp-svg { display: block; margin: 0 auto; }
+
+  .lamp-shade     { transition: fill 0.7s ease; }
+  .lamp-shade-in  { transition: fill 0.7s ease; }
+  .bulb-el        { transition: fill 0.5s ease; }
+
+  @keyframes pull {
+    0%   { transform: translateY(0); }
+    35%  { transform: translateY(9px); }
+    65%  { transform: translateY(-4px); }
+    100% { transform: translateY(0); }
+  }
+  .cord-anim { animation: pull 0.45s ease; }
+
+  .lamp-hint {
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(240,234,214,0.35);
+    margin-top: 6px;
+    transition: color 0.3s;
+  }
+  .lamp-wrap:hover .lamp-hint { color: rgba(240,234,214,0.65); }
+
+  /* ===== CARD ===== */
+  .card {
+    background: rgba(255,255,255,0.035);
+    border: 0.5px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    padding: 40px 44px 44px;
+    width: 360px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.65);
+    transition: box-shadow 0.9s ease, border-color 0.9s ease;
+  }
+  .card.lit {
+    border-color: rgba(201,168,76,0.12);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.4), 0 0 80px rgba(201,168,76,0.06);
+  }
+
+  .card-title {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: #f0ead6;
+    text-align: center;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+    transition: opacity 0.7s;
+  }
+  .card-sub {
+    font-size: 13px;
+    color: rgba(240,234,214,0.4);
+    text-align: center;
+    letter-spacing: 0.04em;
+    margin-bottom: 36px;
+    transition: opacity 0.7s;
+  }
+
+  .dim .card-title, .dim .card-sub { opacity: 0.35; }
+
+  .field { margin-bottom: 18px; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(240,234,214,0.4);
+    margin-bottom: 8px;
+    transition: opacity 0.7s;
+  }
+  .dim .field label { opacity: 0.3; }
+
+  .field input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 13px 16px;
+    font-size: 15px;
+    font-family: 'Lato', sans-serif;
+    color: #f0ead6;
+    outline: none;
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s, opacity 0.7s;
+  }
+  .field input::placeholder { color: rgba(240,234,214,0.2); }
+  .field input:focus {
+    border-color: rgba(201,168,76,0.5);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+  }
+  .dim .field input { opacity: 0.35; }
+
+  .forgot {
+    text-align: right;
+    margin-top: -8px;
+    margin-bottom: 28px;
+    transition: opacity 0.7s;
+  }
+  .dim .forgot { opacity: 0.25; }
+  .forgot a {
+    font-size: 12px;
+    color: #6b5520;
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.3s;
+  }
+  .forgot a:hover { color: #c9a84c; }
+
+  .btn-login {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #c9a84c, #a07030);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: #1a1206;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.3s, opacity 0.7s;
+    box-shadow: 0 4px 24px rgba(201,168,76,0.2);
+  }
+  .btn-login::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  }
+  .btn-login:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(201,168,76,0.38); }
+  .btn-login:active { transform: scale(0.99); }
+  .dim .btn-login { opacity: 0.3; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 0.5px;
+    background: rgba(255,255,255,0.08);
+  }
+  .divider span { font-size: 11px; color: rgba(240,234,214,0.28); letter-spacing: 0.08em; }
+
+  .signup { text-align: center; font-size: 13px; color: rgba(240,234,214,0.4); transition: opacity 0.7s; }
+  .dim .signup { opacity: 0.25; }
+  .signup a {
+    color: #c9a84c;
+    text-decoration: none;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    transition: opacity 0.2s;
+  }
+  .signup a:hover { opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div class="room-light" id="roomLight"></div>
+
+<div class="scene">
+  <!-- LAMP -->
+  <div class="lamp-wrap" id="lampWrap" onclick="toggleLight()">
+    <div class="lamp-halo" id="lampHalo"></div>
+    <div class="light-cone" id="lightCone"></div>
+
+    <svg class="lamp-svg" width="180" height="240" viewBox="0 0 180 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Shade -->
+      <polygon class="lamp-shade" id="shade" points="30,92 150,92 118,28 62,28" fill="#2a2218"/>
+      <!-- Shade inner (lit up when on) -->
+      <polygon class="lamp-shade-in" id="shadeIn" points="36,89 144,89 114,33 66,33" fill="#1c170f"/>
+      <!-- Bottom rim -->
+      <rect x="28" y="90" width="124" height="7" rx="3.5" fill="#3a3020"/>
+      <!-- Top rim -->
+      <rect x="60" y="24" width="60" height="7" rx="3.5" fill="#3a3020"/>
+      <!-- Socket -->
+      <rect x="82" y="31" width="16" height="12" rx="3" fill="#555"/>
+      <!-- Bulb -->
+      <ellipse class="bulb-el" id="bulbEl" cx="90" cy="48" rx="9" ry="11" fill="#3a3020"/>
+      <!-- Stem top -->
+      <rect x="86" y="97" width="8" height="20" rx="4" fill="#8a8070"/>
+      <!-- Orb body -->
+      <ellipse cx="90" cy="133" rx="24" ry="24" fill="#5a4a2e"/>
+      <ellipse cx="83" cy="125" rx="8" ry="6" fill="rgba(255,255,255,0.07)" style="transform-origin:center;"/>
+      <!-- Stem bottom -->
+      <rect x="86" y="155" width="8" height="42" rx="4" fill="#8a8070"/>
+      <!-- Base -->
+      <ellipse cx="90" cy="200" rx="38" ry="11" fill="#3a3020"/>
+      <ellipse cx="90" cy="198" rx="38" ry="11" fill="#2e2618"/>
+      <ellipse cx="90" cy="196" rx="34" ry="9" fill="#3e3428"/>
+      <!-- Pull cord -->
+      <g id="cordGroup">
+        <line x1="106" y1="92" x2="122" y2="132" stroke="#777" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="122" cy="136" r="5" fill="#666"/>
+        <circle cx="122" cy="136" r="3" fill="#888"/>
+      </g>
+    </svg>
+
+    <div class="lamp-hint">Click lamp to toggle</div>
+  </div>
+
+  <!-- LOGIN CARD -->
+  <div class="card dim" id="card">
+    <h1 class="card-title">Welcome Back</h1>
+    <p class="card-sub">Sign in to continue</p>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" placeholder="you@example.com"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" placeholder="••••••••"/>
+    </div>
+
+    <div class="forgot"><a href="#">Forgot password?</a></div>
+    <button class="btn-login">Sign In</button>
+
+    <div class="divider"><span>or</span></div>
+    <p class="signup">No account? <a href="#">Create one</a></p>
+  </div>
+</div>
+
+<script>
+  let on = false;
+
+  (function makeStars() {
+    const c = document.getElementById('stars');
+    for (let i = 0; i < 130; i++) {
+      const d = document.createElement('div');
+      d.className = 'star';
+      const sz = Math.random() * 2 + 0.5;
+      d.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;--dur:${2+Math.random()*4}s;--min:${0.05+Math.random()*0.1};--max:${0.3+Math.random()*0.5};--delay:-${Math.random()*6}s;`;
+      c.appendChild(d);
+    }
+  })();
+
+  function toggleLight() {
+    on = !on;
+    const shade = document.getElementById('shade');
+    const shadeIn = document.getElementById('shadeIn');
+    const bulb = document.getElementById('bulbEl');
+    const halo = document.getElementById('lampHalo');
+    const cone = document.getElementById('lightCone');
+    const card = document.getElementById('card');
+    const room = document.getElementById('roomLight');
+    const cord = document.getElementById('cordGroup');
+
+    cord.classList.remove('cord-anim');
+    void cord.offsetWidth;
+    cord.classList.add('cord-anim');
+
+    if (on) {
+      shade.setAttribute('fill', '#d4a840');
+      shadeIn.setAttribute('fill', '#f8e060');
+      bulb.setAttribute('fill', '#fffbe0');
+      halo.style.opacity = '1';
+      cone.style.opacity = '1';
+      card.classList.remove('dim');
+      card.classList.add('lit');
+      room.style.opacity = '1';
+      document.body.style.background = '#0f0d08';
+    } else {
+      shade.setAttribute('fill', '#2a2218');
+      shadeIn.setAttribute('fill', '#1c170f');
+      bulb.setAttribute('fill', '#3a3020');
+      halo.style.opacity = '0';
+      cone.style.opacity = '0';
+      card.classList.add('dim');
+      card.classList.remove('lit');
+      room.style.opacity = '0';
+      document.body.style.background = '#0d0d14';
+    }
+  }
+</script>
+</body>
+</html>
